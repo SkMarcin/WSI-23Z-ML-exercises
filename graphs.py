@@ -1,6 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
-from numpy.random import choices
+from numpy.random import choice
 
 
 class Node:
@@ -29,10 +29,11 @@ def create_random_graph(n, edge_probability):
     for i in range(0, n):
         nodes = []
         for k in range(0, n):
-            if choices([True, False], [n, 1-n]):
+            if choice([True, False], p=[edge_probability, 1-edge_probability]):
                 nodes.append(k)
         
-        nodes.remove(i)
+        if i in nodes:
+            nodes.remove(i)
         graph.append(Node(i, False, nodes))
 
     return graph
@@ -50,6 +51,9 @@ def draw_graph(graph):
     nx.draw_circular(G)
     plt.show()
 
-#gg = create_full_graph(50)
-#draw_graph(gg)
-print(choices([True, False], [n, 1-n], 50))
+
+if __name__ == "main":
+    gg = create_random_graph(50, 0.1)
+    draw_graph(gg)
+
+
