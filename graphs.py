@@ -13,47 +13,84 @@ class Node:
         self.is_used = not self.is_used
 
 
-def create_full_graph(n):
+def createFullGraph(n):
     graph = []
 
     for i in range(0, n):
-        nodes = [k for k in range(0, n)]
-        nodes.remove(i)
+        nodes = [k for k in range(i + 1, n)]
         graph.append(Node(i, False, nodes))
+
+    for i in range(0, n):
+        for neighbor in i.neighbors:
+            neighbor.neighbors.append(i)
 
     return graph
 
-def create_random_graph(n, edge_probability):
+def createRandomGraph(n, edge_probability):
     graph = []
 
     for i in range(0, n):
         nodes = []
-        for k in range(0, n):
+        for k in range(i + 1, n):
             if choice([True, False], p=[edge_probability, 1-edge_probability]):
                 nodes.append(k)
         
-        if i in nodes:
-            nodes.remove(i)
         graph.append(Node(i, False, nodes))
+
+    for i in range(0, n):
+        for neighbor_num in graph[i].neighbors:
+            graph[neighbor_num].neighbors.append(i)
 
     return graph
 
-def draw_graph(graph):
+def setGraphSeed(graph, seed):
+    for i in range(0, len(graph)):
+        if seed[i]:
+            graph[i].is_used = True
+        else:
+            graph[i].is_used = False
+
+
+def drawGraph(graph):
     G = nx.Graph()
 
     for i in range(0, len(graph)):
         node = graph[i]
-        edges = []
-        for neighbor in node.neighbors:
-            edges.append((i, neighbor))
-        G.add_edges_from(edges)
+        lit_edges = []
+        unlit_edges = []
 
-    nx.draw_circular(G)
+        if node.is_used:
+            for neighbor in node.neighbors:
+                lit_edges.append((i, neighbor))
+        else:
+            for neighbor in node.neighbors:
+                if graph[neighbor].is_used:
+                    lit_edges.append((i, neighbor))
+                else:
+                    unlit_edges.append((i, neighbor))
+        
+        G.add_edges_from(lit_edges, color='g')
+        G.add_edges_from(unlit_edges, color='r')
+
+    edges = G.edges()
+    colors_list = nx.get_edge_attributes(G, 'color').values()
+    options = {
+        "edge_color": colors_list,
+        "width": 1,
+        "with_labels": True,
+    }
+    nx.draw_circular(G, **options)
     plt.show()
 
 
-if __name__ == "main":
-    gg = create_random_graph(50, 0.1)
-    draw_graph(gg)
+#if __name__ == "main":
+seed = []
+for i in range(0, 50):
+    seed.append(choice([0, 1]))
+print(seed)
+gg = createRandomGraph(50, 0.1)
+setGraphSeed(gg, seed)
+print(gg[0].neighbors)
+drawGraph(gg)
 
 
