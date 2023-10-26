@@ -1,6 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
-from numpy.random import choice
+from random import choices
 
 
 class Node:
@@ -33,9 +33,8 @@ def createRandomGraph(n, edge_probability):
     for i in range(0, n):
         nodes = []
         for k in range(i + 1, n):
-            if choice([True, False], p=[edge_probability, 1-edge_probability]):
+            if choices([True, False], weights=[edge_probability, 1-edge_probability])[0]:
                 nodes.append(k)
-
         graph.append(Node(i, False, nodes))
 
     for i in range(0, n):
@@ -103,9 +102,9 @@ def countLitUnlit(G):
 #if __name__ == "main":
 seed = []
 for i in range(0, 50):
-    seed.append(choice([0, 1]))
+    seed.append(choices([0, 1])[0])
 print(seed)
-gg = createRandomGraph(50, 0.1)
+gg = createRandomGraph(50, 0.3)
 setGraphSeed(gg, seed)
 drawGraph(gg)
 

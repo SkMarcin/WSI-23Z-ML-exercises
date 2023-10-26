@@ -4,7 +4,7 @@ from graphs import (createFullGraph,
     setGraphSeed,
     transformToNXGraph,
     countLitUnlit,
-    choice
+    choices
 )
 
 
@@ -13,18 +13,41 @@ class Specimen:
         self.genotype = genotype
         if self.genotype == []:
             self.generate_genotype(genotype_len)
+        self.score = -1
+        self.rank = -1
+        self.reproduction_probability = 0
 
     def generate_genotype(self, genotype_len):
         for i in range(0, genotype_len):
-            self.genotype.append(choice([True, False]))
+            self.genotype.append(choices([True, False]))
 
 
+def rankSpecimens(graph, specimens : list[Specimen]):
+    for specimen in specimens:
+        specimen.score = objectiveFunction(graph, specimen)
+    specimens.sort(key=lambda x: x.score)
+    i = 1
+    for specimen in specimens:
+        specimen.rank = i
+        i += 1
 
-def objectiveFunction(G):
+
+def objectiveFunction(graph, specimen:Specimen):
+    setGraphSeed(graph, specimen.genotype)
+    G = transformToNXGraph(graph)
     lit, unlit = countLitUnlit(G)
     return lit - unlit
 
-def selectTournaments(specimens:list):
-    specimen1 = choice(specimens)
+
+def runTournaments(specimens:list[Specimen]):
+    new_specimens = []
+    specimen1 = choices(specimens)
     specimens.remove(specimen1)
-    specimen2 = choice(specimens)
+    specimen2 = choices(specimens)
+    specimens.append(specimen1)
+    if specimen1.rank < specimen2.rank:
+        new_specimens.append(specimen1)
+    else:
+        new_specimens.append(specimen2)
+
+
