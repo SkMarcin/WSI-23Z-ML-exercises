@@ -26,6 +26,7 @@ def createFullGraph(n):
 
     return graph
 
+
 def createRandomGraph(n, edge_probability):
     graph = []
 
@@ -34,7 +35,7 @@ def createRandomGraph(n, edge_probability):
         for k in range(i + 1, n):
             if choice([True, False], p=[edge_probability, 1-edge_probability]):
                 nodes.append(k)
-        
+
         graph.append(Node(i, False, nodes))
 
     for i in range(0, n):
@@ -42,6 +43,7 @@ def createRandomGraph(n, edge_probability):
             graph[neighbor_num].neighbors.append(i)
 
     return graph
+
 
 def setGraphSeed(graph, seed):
     for i in range(0, len(graph)):
@@ -51,7 +53,7 @@ def setGraphSeed(graph, seed):
             graph[i].is_used = False
 
 
-def drawGraph(graph):
+def transformToNXGraph(graph):
     G = nx.Graph()
 
     for i in range(0, len(graph)):
@@ -68,19 +70,34 @@ def drawGraph(graph):
                     lit_edges.append((i, neighbor))
                 else:
                     unlit_edges.append((i, neighbor))
-        
+
         G.add_edges_from(lit_edges, color='g')
         G.add_edges_from(unlit_edges, color='r')
+    return G
 
-    edges = G.edges()
+
+def drawGraph(graph):
+    G = transformToNXGraph(graph)
     colors_list = nx.get_edge_attributes(G, 'color').values()
     options = {
         "edge_color": colors_list,
         "width": 1,
         "with_labels": True,
     }
-    nx.draw_circular(G, **options)
+    nx.draw(G, **options)
     plt.show()
+
+
+def countLitUnlit(G):
+    lit = 0
+    unlit = 0
+    edges = G.edges.data("color")
+    for edge in edges:
+        if edge[2] == 'g':
+            lit += 1
+        else:
+            unlit += 1
+    return lit, unlit
 
 
 #if __name__ == "main":
@@ -90,7 +107,6 @@ for i in range(0, 50):
 print(seed)
 gg = createRandomGraph(50, 0.1)
 setGraphSeed(gg, seed)
-print(gg[0].neighbors)
 drawGraph(gg)
 
 
