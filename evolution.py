@@ -45,7 +45,10 @@ def objectiveFunction(graph, specimen:Specimen):
     setGraphSeed(graph, specimen.genotype)
     G = transformToNXGraph(graph)
     lit, unlit = countLitUnlit(G)
-    return lit - unlit
+    nodes_selected = specimen.genotype.count(True)
+    cost = nodes_selected 
+    penalty = unlit * 100
+    return nodes_selected + penalty
 
 
 def runTournaments(specimens:list[Specimen]):
@@ -56,11 +59,10 @@ def runTournaments(specimens:list[Specimen]):
         specimens.remove(specimen1)
         specimen2 = choices(specimens)[0]
         specimens.append(specimen1)
-        if specimen1.rank < specimen2.rank:
+        if specimen1.score > specimen2.score:
             new_specimens.append(Specimen(specimen1.genotype_len, specimen1.genotype))
         else:
             new_specimens.append(Specimen(specimen1.genotype_len, specimen1.genotype))
-    print(len(new_specimens))
     return new_specimens
 
 
