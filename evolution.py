@@ -4,13 +4,14 @@ from graphs import (createFullGraph,
     setGraphSeed,
     transformToNXGraph,
     countLitUnlit,
-    choices
 )
+from random import choices, random
 
 
 class Specimen:
-    def __init__(self, genotype_len=50, genotype=[]):
-        self.genotype = genotype
+    def __init__(self, genotype_len=50, genotype=None):
+        self.genotype_len = genotype_len
+        self.genotype = genotype if genotype is not None else []
         if self.genotype == []:
             self.generate_genotype(genotype_len)
         self.score = -1
@@ -22,23 +23,11 @@ class Specimen:
             self.genotype.append(choices([True, False])[0])
     
     def genotype_as_string(self):
-        string = ""
-        for bit in self.genotype:
-            if bit:
-                string += '1'
-            else:
-                string += '0'
-        return string
+        return ''.join('1' if bit else '0' for bit in self.genotype)
             
 
 def generatePopulation(population_count):
-    population = []
-    iterations = 0
-    while iterations < population_count:
-        new_specimen = Specimen(50, [])
-        population.append(new_specimen)
-        iterations += 1
-    return population
+    return [Specimen(50, []) for _ in range(population_count)]
 
 
 def rankSpecimens(graph, specimens : list[Specimen]):
@@ -49,6 +38,7 @@ def rankSpecimens(graph, specimens : list[Specimen]):
     for specimen in specimens:
         specimen.rank = i
         i += 1
+    return specimens
 
 
 def objectiveFunction(graph, specimen:Specimen):
@@ -67,18 +57,28 @@ def runTournaments(specimens:list[Specimen]):
         specimen2 = choices(specimens)[0]
         specimens.append(specimen1)
         if specimen1.rank < specimen2.rank:
-            new_specimens.append(specimen1)
+            new_specimens.append(Specimen(specimen1.genotype_len, specimen1.genotype))
         else:
-            new_specimens.append(specimen2)
+            new_specimens.append(Specimen(specimen1.genotype_len, specimen1.genotype))
     print(len(new_specimens))
     return new_specimens
 
+
 def runMutations(mutation_probability, bit_change_probability, specimens:list[Specimen]):
     for specimen in specimens:
-        if choices([True, False], weights=[mutation_probability, 1-mutation_probability])[0]:
+        if random() < mutation_probability:
             i = 0
             while i < len(specimen.genotype):
-                if choices([True, False], weights=[bit_change_probability, 1-bit_change_probability])[0]:
+                if random() < bit_change_probability:
                     specimen.genotype[i] = not specimen.genotype[i]
                 i += 1
+    return specimens
 
+
+if __name__ == "__main__":
+    g = createRandomGraph(10, 0.5)
+    pop = generatePopulation(5)
+    pop2 = rankSpecimens(g, pop)
+    for specimen in pop2:
+        print(f'{specimen.score}, {specimen.rank}, {specimen.genotype_as_string()}')
+    drawGraph(g)
