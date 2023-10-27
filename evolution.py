@@ -47,7 +47,7 @@ def objectiveFunction(graph, specimen:Specimen):
     lit, unlit = countLitUnlit(G)
     nodes_selected = specimen.genotype.count(True)
     cost = nodes_selected 
-    penalty = unlit * 10
+    penalty = unlit * 100
     return cost + penalty
 
 
@@ -59,7 +59,7 @@ def runTournaments(specimens:list[Specimen]):
         specimens.remove(specimen1)
         specimen2 = choices(specimens)[0]
         specimens.append(specimen1)
-        if specimen1.score > specimen2.score:
+        if specimen1.score < specimen2.score:
             new_specimens.append(Specimen(specimen1.genotype_len, specimen1.genotype))
         else:
             new_specimens.append(Specimen(specimen1.genotype_len, specimen1.genotype))
