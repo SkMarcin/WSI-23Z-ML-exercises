@@ -40,14 +40,24 @@ def objectiveFunction(graph, specimen:Specimen):
 
 
 def runTournaments(specimens:list[Specimen]):
+    n = 2 * len(list(specimens))
     new_specimens = []
-    specimen1 = choices(specimens)
-    specimens.remove(specimen1)
-    specimen2 = choices(specimens)
-    specimens.append(specimen1)
-    if specimen1.rank < specimen2.rank:
-        new_specimens.append(specimen1)
-    else:
-        new_specimens.append(specimen2)
+    for _ in range (0, n):
+        specimen1 = choices(specimens)
+        specimens.remove(specimen1)
+        specimen2 = choices(specimens)
+        specimens.append(specimen1)
+        if specimen1.rank < specimen2.rank:
+            new_specimens.append(specimen1)
+        else:
+            new_specimens.append(specimen2)
+    return new_specimens
 
+def runMutations(mutation_probability, bit_change_probability, specimens:list[Specimen]):
+    for specimen in specimens:
+        if choices([True, False], weights=[mutation_probability, 1-mutation_probability]):
+            for bit in specimen.genotype():
+                if choices([True, False], weights=[bit_change_probability]):
+                    bit = not bit
+    return specimens
 
