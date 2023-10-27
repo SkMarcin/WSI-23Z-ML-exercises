@@ -99,13 +99,14 @@ def countLitUnlit(G):
     return lit, unlit
 
 
-#if __name__ == "main":
-seed = []
-for i in range(0, 50):
-    seed.append(choices([0, 1])[0])
-print(seed)
-gg = createRandomGraph(50, 0.3)
-setGraphSeed(gg, seed)
-drawGraph(gg)
+def main():
+    seed = []
+    for i in range(0, 50):
+        seed.append(choices([0, 1])[0])
+    print(seed)
+    gg = createRandomGraph(50, 0.3)
+    setGraphSeed(gg, seed)
+    drawGraph(gg)
 
-
+if __name__ == "main":
+    main()
