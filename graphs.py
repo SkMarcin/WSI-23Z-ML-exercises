@@ -1,6 +1,7 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 from random import choices
+from math import sqrt
 
 
 class Node:
@@ -77,8 +78,11 @@ def transformToNXGraph(graph):
 
 def drawGraph(graph):
     G = transformToNXGraph(graph)
-    colors_list = nx.get_edge_attributes(G, 'color').values()
+    edges, colors_list = zip(*nx.get_edge_attributes(G,'color').items())
+    # edges = nx.get_edge_attributes(G)
+    # colors_list = nx.get_edge_attributes(G, 'color').values()
     options = {
+        "edgelist": edges,
         "edge_color": colors_list,
         "width": 1,
         "with_labels": True,
@@ -97,6 +101,19 @@ def countLitUnlit(G):
         else:
             unlit += 1
     return lit, unlit
+
+
+def mean(list):
+    return sum(list)/(len(list))
+
+
+def standard_deviation(list):
+    result = 0
+    average = mean(list)
+    for value in list:
+        result += (value - average) ** 2
+    result /= len(list)
+    return sqrt(result)
 
 
 if __name__ == "__main__":
