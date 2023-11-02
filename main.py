@@ -1,4 +1,3 @@
-from inspect import _void
 from graphs import createRandomGraph, createFullGraph, setGraphSeed, drawGraph, mean, standard_deviation
 from evolution import generatePopulation, rankSpecimens, runTournaments, runMutations
 from time import process_time
