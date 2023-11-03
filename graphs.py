@@ -55,11 +55,11 @@ def setGraphSeed(graph, seed):
 
 def transformToNXGraph(graph):
     G = nx.Graph()
+    lit_edges = []
+    unlit_edges = []
 
     for i in range(0, len(graph)):
         node = graph[i]
-        lit_edges = []
-        unlit_edges = []
 
         if node.is_used:
             for neighbor in node.neighbors:
