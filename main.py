@@ -1,4 +1,4 @@
-from Connect4 import GameFinishedException, Connect4, RandomPlayer, MiniMaxPlayer, check_win, add_to_column
+from Connect4 import GameFinishedException, Connect4, RealPlayer, RandomPlayer, MiniMaxPlayer, check_win, add_to_column
 from time import process_time
 ATTEMPTS = 200
 HEIGHT = 5
@@ -31,8 +31,8 @@ def run_game():
 
 def run_game_display():
     playing = True
-    player1 = RandomPlayer('Player 1', DEPTH)
-    player2 = RandomPlayer('Player 2', DEPTH)
+    player1 = MiniMaxPlayer('Player 1', DEPTH)
+    player2 = RealPlayer('Player 2', DEPTH)
     game = Connect4(player1, player2, HEIGHT, WIDTH)
     game_result = None
     round = 1
