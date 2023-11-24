@@ -18,6 +18,15 @@ class Player:
         self.depth = depth
 
 
+class RealPlayer(Player):
+    def get_move(self, game, first_player, depth):
+        column = -1
+        while(column < 0 or column > game.width - 1):
+            column = int(input("Enter column to add to: "))
+            column -= 1
+        add_to_column(game.board, game.height, column, first_player)
+
+
 class RandomPlayer(Player):
     def get_move(self, game, first_player, depth):
         empty_columns = get_empty_columns(game)
