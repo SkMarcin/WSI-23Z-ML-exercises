@@ -2,6 +2,9 @@ from ucimlrepo import fetch_ucirepo
 from training import create_forest
 import numpy as np
 
+SPLIT = 1000
+TREES = 100
+
 # fetch dataset
 car_evaluation = fetch_ucirepo(id=19)
 
@@ -12,13 +15,18 @@ Y = car_evaluation.data.targets
 targets = [Y.iloc[i, 0] for i in range(0, 1728)]
 
 data = []
-for i in range(0, 6):
-    column = []
-    for k in range(0, 1728):
-        column.append(X.iloc[k, i])
-    data.append(column)
+for i in range(0, 1728):
+    row = []
+    for k in range(0, 6):
+        row.append(X.iloc[i, k])
+    data.append(row)
 
-create_forest(targets, data)
+if SPLIT > len(data):
+    raise ValueError
 
-print(Y)
-print(X.iloc[0, 0])
+training_data = data[SPLIT:]
+testing_data = data[:SPLIT]
+training_targets = targets[SPLIT:]
+testing_targets = targets[:SPLIT]
+
+forest = create_forest(training_data, training_targets, TREES)
