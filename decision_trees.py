@@ -1,3 +1,4 @@
+from random import choice
 import numpy as np
 import copy
 
@@ -26,8 +27,8 @@ class DecisionTree:
                 self.classes_sum += 1
                 self.frequencies[target] += 1
             else:
-                self.frequencies[target] = 0
-                self.classes_dict[target] = 0
+                self.frequencies[target] = 1
+                self.classes_dict[target] = 1
         
         self.total_entropy = 0
         for value in self.classes_dict:
@@ -43,9 +44,11 @@ class DecisionTree:
         
         car_attributes = [None] * self.atr_count
         node_checked = parent_node
-        while node_checked is not None:
-            car_attributes[node_checked.atr_index] = node_checked.value
-            node_checked = node_checked.parent
+        if node_checked is not None:
+            car_attributes[node_checked.atr_index] = split_value
+            while node_checked.parent is not None:
+                car_attributes[node_checked.parent.atr_index] = node_checked.value
+                node_checked = node_checked.parent
             
 
         for target in self.classes_dict:
@@ -60,9 +63,15 @@ class DecisionTree:
             if valid_columns == self.atr_count:
                 self.classes_dict[self.targets[row_index]] += 1
 
-        if len(self.classes_dict) == 1:
-            for key in index:
-                return Node(self.classes_dict[key], split_value, None, attributes_selected, parent_node)
+        class_counter = 0
+        classifier = None
+        for key in self.classes_dict:
+            if self.classes_dict[key] > 0:
+                class_counter += 1
+                classifier = key
+
+        if class_counter == 1:
+            return Node(classifier, split_value, None, attributes_selected, parent_node)
 
         elif all_selected:
             most_common_class = None
@@ -87,8 +96,8 @@ class DecisionTree:
                     max_value = value
                     max_index = index
 
-        attributes_selected = copy.deepcopy(attributes_selected)
-        attributes_selected[max_index] = True
+        new_attributes_selected = copy.deepcopy(attributes_selected)
+        new_attributes_selected[max_index] = True
 
         # max_index -> index of attribute to split with
         atr_values = {}
@@ -96,37 +105,52 @@ class DecisionTree:
             if row[max_index] not in self.classes_dict:
                 atr_values[row[max_index]] = 0
         
-        node = Node(None, split_value, max_index, attributes_selected, parent_node)
+        node = Node(None, split_value, max_index, new_attributes_selected, parent_node)
         for split_value in atr_values:
-            node.children.append(self.build_tree(attributes_selected, node, split_value))
+            node.children.append(self.build_tree(new_attributes_selected, node, split_value))
 
         if parent_node == None:
             self.root = node
 
         return node
-        
+
 
     def get_attribute_entropy(self, atr_index):
         attribute_entropy = 0
         atr_sums = {}
         atr_frequencies = {}
         for row_index, row in enumerate(self.data):
-            if row[atr_index] in self.classes_dict:
-                atr_frequencies[(row[atr_index], self.targets[row_index])] += 1
+            if row[atr_index] in atr_sums:
                 atr_sums[row[atr_index]] += 1
             else:
-                atr_frequencies[(row[atr_index], self.targets[row_index])] = 0
-                atr_sums[row[atr_index]] = 0
+                atr_sums[row[atr_index]] = 1
 
+            if (row[atr_index], self.targets[row_index]) in atr_frequencies:
+                atr_frequencies[(row[atr_index], self.targets[row_index])] += 1
+            else:
+                atr_frequencies[(row[atr_index], self.targets[row_index])] = 1
 
         for sum_key in atr_sums:
             temp_entropy = 0
             for freq_key in atr_frequencies:
-                if freq_key[1] == sum_key:
-                    temp_entropy -= atr_frequencies[freq_key] / atr_sums[sum_key] * np.log10(atr_frequencies[freq_key] / atr_sums[sum_key])
+                if freq_key[0] == sum_key:
+                    temp_entropy -= (atr_frequencies[freq_key] / atr_sums[sum_key]) * (np.log10(atr_frequencies[freq_key] / atr_sums[sum_key]))
             attribute_entropy -= (temp_entropy * atr_sums[sum_key]) / self.classes_sum
 
         return attribute_entropy
 
+
+    def get_prediction(self, attributes):
+        node = self.root
+        while node.atr_index is not None:
+            found_child = False
+            for child_node in node.children:
+                if child_node.value == attributes[node.atr_index]:
+                    node = child_node
+                    found_child = True
+                    break
+            if not found_child:
+                return None
+        return node.classifier
 
 
