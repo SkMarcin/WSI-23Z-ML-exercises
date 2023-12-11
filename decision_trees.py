@@ -5,9 +5,9 @@ import copy
 
 class Node:
     def __init__(self, classifier, value, atr_index, attributes_selected, parent):
-        self.classifier = classifier  
+        self.classifier = classifier
         self.value = value
-        self.atr_index = atr_index  
+        self.atr_index = atr_index
         self.attributes_selected = attributes_selected
         self.parent = parent
         self.children = []
@@ -19,7 +19,7 @@ class DecisionTree:
         self.atr_count = len(data[0])
         self.targets = targets
         self.classes_dict = {}
-        self.frequencies = {}       
+        self.frequencies = {}
         self.classes_sum = 0
 
         for target in targets:
@@ -29,7 +29,7 @@ class DecisionTree:
             else:
                 self.frequencies[target] = 1
                 self.classes_dict[target] = 1
-        
+
         self.total_entropy = 0
         for value in self.classes_dict:
             if self.frequencies[value] > 0:
@@ -41,7 +41,7 @@ class DecisionTree:
         for attribute in attributes_selected:
             if not attribute:
                 all_selected = False
-        
+
         car_attributes = [None] * self.atr_count
         node_checked = parent_node
         if node_checked is not None:
@@ -49,7 +49,7 @@ class DecisionTree:
             while node_checked.parent is not None:
                 car_attributes[node_checked.parent.atr_index] = node_checked.value
                 node_checked = node_checked.parent
-            
+
 
         for target in self.classes_dict:
             self.classes_dict[target] = 0
@@ -59,7 +59,7 @@ class DecisionTree:
                 if row[column_index] != car_attributes[column_index] and car_attributes[column_index] is not None:
                     break
                 valid_columns += 1
-            
+
             if valid_columns == self.atr_count:
                 self.classes_dict[self.targets[row_index]] += 1
 
@@ -80,14 +80,14 @@ class DecisionTree:
                 if self.classes_dict[target] >= max_amount:
                     most_common_class = target
             return Node(most_common_class, split_value, None, attributes_selected, parent_node)
-        
+
         inf_gains = []
         for atr_index, attribute in enumerate(attributes_selected):
             if attribute:
                 inf_gains.append(None)
             else:
                 inf_gains.append(self.total_entropy - self.get_attribute_entropy(atr_index))
-                
+
         max_index = -1
         max_value = float('-inf')
         for index, value in enumerate(inf_gains):
@@ -104,7 +104,7 @@ class DecisionTree:
         for row_index, row in enumerate(self.data):
             if row[max_index] not in self.classes_dict:
                 atr_values[row[max_index]] = 0
-        
+
         node = Node(None, split_value, max_index, new_attributes_selected, parent_node)
         for split_value in atr_values:
             node.children.append(self.build_tree(new_attributes_selected, node, split_value))
@@ -142,6 +142,8 @@ class DecisionTree:
 
     def get_prediction(self, attributes):
         node = self.root
+        if node is None:
+            return None
         while node.atr_index is not None:
             found_child = False
             for child_node in node.children:
