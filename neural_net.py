@@ -1,3 +1,4 @@
+from neurons import InputNeuron, DeepNeuron, OutputNeuron
 from random import random
 import numpy as np
 
@@ -6,29 +7,34 @@ class NeuralNet:
         self.data = data
         self.targets = targets
         self.learning_speed = learning_speed
-        self.layer_weights = {}
-        self.layer_biases = {}
+        self.input_layer = []
+        self.deep_layers = []
+        self.output_layer = []
 
     def activation_function(value):
         return 1 / (1 + np.exp(-value))
 
-    def create_net(self, hidden_layers, hidden_neurons):
-        self.layer_weights[0] = []
-        self.layer_biases[0] = random()
+    def create_net(self, deep_layer_count, deep_neurons):
         for _ in range(len(self.data[0])):
-            self.layer_weights[0].append(random())
+            self.input_layer.append(InputNeuron())
         
-        for i in range(1, hidden_layers + 1):
-            self.layer_weights[i] = []
-            self.layer_biases[i] = random()
-            for j in range(hidden_neurons):
-                self.layer_weights[i].append(random())
+        for i in range(deep_layer_count):
+            self.deep_layers.append([])
+            if i == 0:
+                for _ in range(deep_neurons):
+                    weights = [random() for _ in range(len(self.input_layer))]
+                    bias = random()
+                    self.deep_layers[i].append(DeepNeuron(weights, bias))
+            else:
+                for _ in range(deep_neurons):
+                    weights = [random() for _ in range(deep_neurons)]
+                    bias = random()
+                    self.deep_layers[i].append(DeepNeuron(weights, bias))
         
-        self.layer_weights[hidden_layers + 1] = []
-        self.layer_biases[hidden_layers + 1] = random()
         for _ in range(len(np.unique(self.targets))):
-            self.layer_weights[hidden_layers + 1].append(random())
-
+            weights = [random() for _ in range(deep_neurons)]
+            bias = random()
+            self.output_layer.append(OutputNeuron(weights, bias))
 
     def train(self, cycles):
         pass
