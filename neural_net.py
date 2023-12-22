@@ -53,6 +53,11 @@ class NeuralNet:
             self.output_layer.append(OutputNeuron(weights, bias))
 
     def train_cycle(self):
+        """
+        This method runs a complete training cycle for the neural net including
+        forward, backward propagation as well as updating weights and biases
+        """
+
         # forward propagation part
         index = randint(0, len(self.data) - 1)
         self.load_pixels(index)
@@ -129,6 +134,7 @@ class NeuralNet:
             self.input_layer[pixel_index].value = pixel
 
     def softmax(self):
+        """this method returns the probabilities for each class according to the network"""
         logits_sum = 0
         probabilities = []
         for neuron in self.output_layer:
@@ -140,12 +146,13 @@ class NeuralNet:
         return probabilities
 
     def cross_entropy(self, probabilities, target_class):
+        """this method calculates error for class probabilities"""
         epsilon = 1e-12
 
         errors = []
         for index, probabilty in enumerate(probabilities):
             probabilty = np.clip(probabilty, epsilon, 1)
-            if index == target_class:
+            if index == int(target_class):
                 errors.append(-probabilty * np.log(probabilty))
             else:
                 errors.append(0)

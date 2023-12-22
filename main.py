@@ -16,3 +16,7 @@ testing_data, validation_data, testing_targets, validation_targets = train_test_
 
 network = NeuralNet(training_data, training_targets, LEARNING_SPEED)
 network.create_net(5, 15)
+network.train_cycle()
+network.train_cycle()
+
+print("finished")
