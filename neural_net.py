@@ -158,3 +158,9 @@ class NeuralNet:
                 errors.append(0)
 
         return errors
+
+    def get_output_error(self):
+        total = 0
+        for outputNeuron in self.output_layer:
+            total += outputNeuron.error
+        return total
