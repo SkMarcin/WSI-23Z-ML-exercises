@@ -164,3 +164,48 @@ class NeuralNet:
         for outputNeuron in self.output_layer:
             total += outputNeuron.error
         return total
+
+    def make_prediction(self, pixels, classed):
+        # load input layer
+        for i in range(len(pixels)):
+            self.input_layer[i].value = pixels[i]
+        target_class = classed
+
+        prev_layer_values = []
+        this_layer_values = []
+        for neuron in self.input_layer:
+            prev_layer_values.append(neuron.value)
+
+        for layer in self.deep_layers:
+            for neuron in layer:
+                neuron.value = np.dot(neuron.weights, prev_layer_values) + neuron.bias
+                neuron.value = self.activation_function(neuron.value)
+                neuron.derivative_value = self.activation_derivative(neuron.value)  # this is used
+                neuron.weights_derivatives = np.array(prev_layer_values)            # in back propagation
+                this_layer_values.append(neuron.value)
+            prev_layer_values = this_layer_values
+            this_layer_values = []
+
+        for neuron in self.output_layer:
+            neuron.value = np.dot(neuron.weights, prev_layer_values) + neuron.bias
+            neuron.value = self.activation_function(neuron.value)
+            neuron.derivative_value = self.activation_derivative(neuron.value)      # this is used
+            neuron.weights_derivatives = np.array(prev_layer_values)                # in back propagation
+            this_layer_values.append(neuron.value)
+
+        # calculating error
+        probabilities = self.softmax()
+        calculated_class = probabilities.index(max(probabilities))
+        correct = calculated_class == int(target_class)
+
+        return calculated_class, correct
+
+    def validate_network(self, dataset, classes):
+        successes = 0
+        for ind in range(len(dataset)):
+            img = dataset[ind]
+            classed = classes[ind]
+            _, success = self.make_prediction(img, classed)
+            if success:
+                successes += 1
+        return successes / len(dataset)

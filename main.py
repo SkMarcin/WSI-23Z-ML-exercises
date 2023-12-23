@@ -5,8 +5,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 LEARNING_SPEED = 0.1
-HOW_MANY_CYCLES = 100
-CHECK_FREQUENCY = 2
+HOW_MANY_CYCLES = 50000
+CHECK_FREQUENCY = 10
+DOT_SIZE = 0.2
 
 def simulate_cycles(network):
     errors = []
@@ -19,7 +20,7 @@ def simulate_cycles(network):
     return errors, indexes
 
 def plot_errors(errors, indexes):
-    plt.plot(indexes, errors, marker='o', linestyle='-')
+    plt.scatter(indexes, errors, marker='o', s=DOT_SIZE)
     plt.title("Error changing")
     plt.xlabel("Training ammount")
     plt.ylabel("Error value")
@@ -36,10 +37,14 @@ def main():
     testing_data, validation_data, testing_targets, validation_targets = train_test_split(temp_data, temp_targets, test_size=0.5, random_state=1)
 
     network = NeuralNet(training_data, training_targets, LEARNING_SPEED)
-    network.create_net(5, 15)
-    print("created")
+    network.create_net(10, 30)
+
     errors, indexes = simulate_cycles(network)
+    print("created")
     plot_errors(errors, indexes)
+
+    success_rate = network.validate_network(validation_data, validation_targets)
+    print(success_rate)
 
     print("finished")
 
