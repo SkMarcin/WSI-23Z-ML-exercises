@@ -5,19 +5,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 LEARNING_SPEED = 0.001
-HOW_MANY_CYCLES = 60000
+HOW_MANY_CYCLES = 6000
 CHECK_FREQUENCY = 10
 DOT_SIZE = 0.2
-
-def simulate_cycles(network):
-    errors = []
-    indexes = []
-    for i in range(HOW_MANY_CYCLES):
-        network.train_cycle()
-        if i % CHECK_FREQUENCY == 0:
-            indexes.append(i)
-            errors.append(network.get_output_error())
-    return errors, indexes
 
 def plot_errors(errors, indexes):
     plt.scatter(indexes, errors, marker='o', s=DOT_SIZE)
@@ -34,14 +24,28 @@ def main():
     data = np.array(mnist.data)
     targets = np.array(mnist.target)
 
-    np.random.shuffle(data)
+    training_data, testing_data, training_targets, testing_targets = train_test_split(data, targets, test_size=0.2, random_state=1)
 
-    training_data, temp_data, training_targets, temp_targets = train_test_split(data, targets, test_size=0.2, random_state=1)
-    testing_data, validation_data, testing_targets, validation_targets = train_test_split(temp_data, temp_targets, test_size=0.5, random_state=1)
+    training_array = []
+    temp_list = training_data.tolist()
+    for i in range(len(temp_list)):
+        target = [int(training_targets[i])]
+        img = temp_list[i]
+        temp = target + img
+        training_array.append(temp)
+
+    testing_array = []
+    temp_list = testing_data.tolist()
+    for i in range(len(temp_list)):
+        target = [int(testing_targets[i])]
+        img = temp_list[i]
+        temp = target + img
+        testing_array.append(temp)
+
     print("devided")
     network = NeuralNet()
     print("Initialized")
-    network.train(training_data, testing_data)
+    network.train(training_array, testing_array)
 
 
 if __name__ == "__main__":
