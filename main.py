@@ -4,8 +4,8 @@ from neural_net import NeuralNet
 import matplotlib.pyplot as plt
 import numpy as np
 
-LEARNING_SPEED = 0.1
-HOW_MANY_CYCLES = 50000
+LEARNING_SPEED = 0.001
+HOW_MANY_CYCLES = 60000
 CHECK_FREQUENCY = 10
 DOT_SIZE = 0.2
 
@@ -29,24 +29,20 @@ def plot_errors(errors, indexes):
 def main():
     mnist = fetch_openml('mnist_784', version=1)
 
+    print("downloaded")
+
     data = np.array(mnist.data)
     targets = np.array(mnist.target)
 
+    np.random.shuffle(data)
 
     training_data, temp_data, training_targets, temp_targets = train_test_split(data, targets, test_size=0.2, random_state=1)
     testing_data, validation_data, testing_targets, validation_targets = train_test_split(temp_data, temp_targets, test_size=0.5, random_state=1)
+    print("devided")
+    network = NeuralNet([728, 128, 64, 10])
+    print("Initialized")
+    network.train(training_data, testing_data)
 
-    network = NeuralNet(training_data, training_targets, LEARNING_SPEED)
-    network.create_net(10, 30)
-
-    errors, indexes = simulate_cycles(network)
-    print("created")
-    plot_errors(errors, indexes)
-
-    success_rate = network.validate_network(validation_data, validation_targets)
-    print(success_rate)
-
-    print("finished")
 
 if __name__ == "__main__":
     main()

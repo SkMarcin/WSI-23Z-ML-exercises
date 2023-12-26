@@ -3,209 +3,108 @@ from random import random, choice, randint
 import numpy as np
 
 class NeuralNet:
-    def __init__(self, data, targets, learning_speed):
-        self.data = data
-        self.targets = targets
-        self.learning_speed = learning_speed
-        self.input_layer = []
-        self.deep_layers = []
-        self.output_layer = []
+    def __init__(self, sizes=[784, 128, 64, 10], repeat=10, learing_speed=0.001):
+        self.sizes = sizes
+        self.repeat = repeat
+        self.learning_speed = learing_speed
 
-    def activation_function(self, value):
-        return 1 / (1 + np.exp(-value))
+        input_layer = sizes[0]
+        deepSizes = []
+        for i in range(1, len(sizes) - 1):
+            deepSizes.append(sizes[i])
+        output_layer = sizes[-1]
+        print(deepSizes)
+        print(output_layer)
 
-    def activation_derivative(self, value):
-        return self.activation_function(value) * (1 - self.activation_function(value))
+        self.params = {}
 
-    def create_net(self, deep_layer_count, deep_neuron_count):
-        """
-        This method creates the structure of NeuralNet
+        for i in range(len(sizes) - 1):
+            j = i + 1
+            key = "W" + str(j)
+            self.params[key] = np.random.randn(sizes[j], sizes[i]) * np.sqrt(1./sizes[j])
 
-        input_layer contains InputNeurons with only a value
+        self.initial_params = self.params
+        # print(self.params)
 
-        deep_layers contains deep_layer_count layers with deep_neuron_count DeepNeurons each.
+    def sigmoid(self, x, derivative=False):
+        if derivative:
+            return (np.exp(-x))/((np.exp(-x)+1)**2)
+        return 1/(1+np.exp(-x))
 
-        output_layer contains as many neurons as there are unique classes in targets
-        """
-        for _ in range(len(self.data[0])):
-            self.input_layer.append(InputNeuron())
+    def softmax(self, x, derivative=False):
+        exps = np.exp(x-x.max())
+        if derivative:
+            return exps / np.sum(exps, axis=0) * (1-exps / np.sum(exps, axis=0))
+        return exps / np.sum(exps, axis=0)
 
-        for i in range(deep_layer_count):
-            self.deep_layers.append([])
-            if i == 0:
-                for _ in range(deep_neuron_count):
-                    weights = [random() for _ in range(len(self.input_layer))]
-                    bias = random()
-                    self.deep_layers[i].append(DeepNeuron(weights, bias))
-            else:
-                for _ in range(deep_neuron_count):
-                    weights = [random() for _ in range(deep_neuron_count)]
-                    bias = random()
-                    self.deep_layers[i].append(DeepNeuron(weights, bias))
+    def foward_pass(self, x_train):
+        params = self.params
 
-        if deep_layer_count == 0:
-            # when there are no deep layers
-            deep_neuron_count = len(self.input_layer)
+        params['A0'] = x_train
+        last_id = 0
+        for i in range(len(self.params) - 1):
+            j = i + 1
+            params['Z'+str(j)] = np.dot(params['W'+str(j)], params['A'+str(i)])
+            params['A'+str(j)] = self.sigmoid(params['Z'+str(j)])
+            last_id = j
+        print(last_id)
+        params['Z'+str(last_id)] = np.dot(params['W'+str(last_id)], params['A'+str(last_id-1)])
+        params['A'+str(last_id)] = self.softmax(params['Z'+str(last_id)])
 
-        for _ in range(len(np.unique(self.targets))):
-            weights = [random() for _ in range(deep_neuron_count)]
-            bias = random()
-            self.output_layer.append(OutputNeuron(weights, bias))
+        return params['Z'+str(last_id)]
 
-    def train_cycle(self):
-        """
-        This method runs a complete training cycle for the neural net including
-        forward, backward propagation as well as updating weights and biases
-        """
+    def get_last_number(s):
+        i = len(s) - 1
 
-        # forward propagation part
-        index = randint(0, len(self.data) - 1)
-        self.load_pixels(index)
-        target_class = self.targets[index]
+        while i >= 0 and s[i].isdigit():
+            i -= 1
 
-        prev_layer_values = []
-        this_layer_values = []
-        for neuron in self.input_layer:
-            prev_layer_values.append(neuron.value)
-
-        for layer in self.deep_layers:
-            for neuron in layer:
-                neuron.value = np.dot(neuron.weights, prev_layer_values) + neuron.bias
-                neuron.value = self.activation_function(neuron.value)
-                neuron.derivative_value = self.activation_derivative(neuron.value)  # this is used
-                neuron.weights_derivatives = np.array(prev_layer_values)            # in back propagation
-                this_layer_values.append(neuron.value)
-            prev_layer_values = this_layer_values
-            this_layer_values = []
-
-        for neuron in self.output_layer:
-            neuron.value = np.dot(neuron.weights, prev_layer_values) + neuron.bias
-            neuron.value = self.activation_function(neuron.value)
-            neuron.derivative_value = self.activation_derivative(neuron.value)      # this is used
-            neuron.weights_derivatives = np.array(prev_layer_values)                # in back propagation
-            this_layer_values.append(neuron.value)
-
-        # calculating error
-        probabilities = self.softmax()
-        errors = self.cross_entropy(probabilities, target_class)
-
-        for index, error in enumerate(errors):
-            self.output_layer[index].error = error
-
-        # back propagation part
-        next_layer_weights = []
-        next_layer_errors = []
-        for neuron in self.output_layer:
-            next_layer_weights.append(neuron.weights)
-            next_layer_errors.append(neuron.error)
-
-        # update output_layer parameters
-        for neuron in self.output_layer:
-            weights_gradients = neuron.weights_derivatives * neuron.derivative_value * neuron.error
-            bias_gradient = neuron.derivative_value * neuron.error
-            neuron.weights = neuron.weights - self.learning_speed * weights_gradients
-            neuron.bias = neuron.bias - self.learning_speed * bias_gradient
-
-        for layer in reversed(self.deep_layers):
-            # propagate error
-            for neuron_index, neuron in enumerate(layer):
-                neuron.error = 0
-                for error_index, error in enumerate(next_layer_errors):
-                    neuron.error += error * next_layer_weights[error_index][neuron_index]
-
-            next_layer_weights = []
-            next_layer_errors = []
-            for neuron in layer:
-                next_layer_weights.append(neuron.weights)
-                next_layer_errors.append(neuron.error)
-
-            # update layer parameters
-            for neuron in layer:
-                weights_gradients = neuron.weights_derivatives * neuron.derivative_value * neuron.error
-                bias_gradient = neuron.derivative_value * neuron.error
-                neuron.weights = neuron.weights - self.learning_speed * weights_gradients
-                neuron.bias = neuron.bias - self.learning_speed * bias_gradient
+        last_number = s[i + 1:] if i < len(s) - 1 else None
+        return int(last_number) if last_number is not None else None
 
 
-    def load_pixels(self, index):
-        """this method inputs pixel data from index into input layer"""
+    def backward_pass(self, y_train, output):
+        params = self.params
 
-        for pixel_index, pixel in enumerate(self.data[index]):
-            self.input_layer[pixel_index].value = pixel
+        change_w = {}
+        last_key = list(params.keys())[-1]
+        last_id = self.get_last_number(last_key)
+        error = 2 * (output - y_train) / output.shape[0] * self.softmax(params['Z'+str(last_id)], True)
+        change_w['W'+str(last_id)] = np.outer(error, params['A'+str(last_id-1)])
 
-    def softmax(self):
-        """this method returns the probabilities for each class according to the network"""
-        logits_sum = 0
-        probabilities = []
-        for neuron in self.output_layer:
-            logits_sum += np.exp(neuron.value)
+        a = last_id - 2
+        while a >= 0:
+            error = np.dot(params['W' + str(a+2)].T, error) * self.sigmoid(params['Z'+str(a+1)], True)
+            change_w['W'+str(a+1)] = np.outer(error, params['A'+str(a)])
 
-        for neuron in self.output_layer:
-            probabilities.append(np.exp(neuron.value) / logits_sum)
+        return change_w
 
-        return probabilities
+    def update_weights(self, change_w):
+        for key, val in change_w.items():
+            self.params[key] -= val * self.learning_speed
 
-    def cross_entropy(self, probabilities, target_class):
-        """this method calculates error for class probabilities"""
-        epsilon = 1e-12
+    def get_accuracy(self, train_list):
+        predictions = []
+        for x in train_list:
+            values = train_list.to_list()
+            inputs = (np.asfarray(values[1:])/255*0.99) + 0.01
+            targets = np.zeros(10) + 0.01
+            targets[int(values[0])] = 0.99
+            output = self.foward_pass(inputs)
+            prediction = np.argmax(output)
+            predictions.append(prediction==np.argmax(targets))
+        return np.mean(predictions)
 
-        errors = []
-        for index, probabilty in enumerate(probabilities):
-            probabilty = np.clip(probabilty, epsilon, 1)
-            if index == int(target_class):
-                errors.append(-probabilty * np.log(probabilty))
-            else:
-                errors.append(0)
 
-        return errors
+    def train(self, train_list, test_list):
+        for i in range(self.repeat):
+            for x in train_list:
+                values = train_list.to_list()
+                inputs = (np.asfarray(values[1:])/255*0.99) + 0.01
+                targets = np.zeros(10) + 0.01
+                targets[int(values[0])] = 0.99
+                output = self.foward_pass(inputs)
+                change_w = self.backward_pass(targets, output)
+                self.update_weights(change_w)
 
-    def get_output_error(self):
-        total = 0
-        for outputNeuron in self.output_layer:
-            total += outputNeuron.error
-        return total
-
-    def make_prediction(self, pixels, classed):
-        # load input layer
-        for i in range(len(pixels)):
-            self.input_layer[i].value = pixels[i]
-        target_class = classed
-
-        prev_layer_values = []
-        this_layer_values = []
-        for neuron in self.input_layer:
-            prev_layer_values.append(neuron.value)
-
-        for layer in self.deep_layers:
-            for neuron in layer:
-                neuron.value = np.dot(neuron.weights, prev_layer_values) + neuron.bias
-                neuron.value = self.activation_function(neuron.value)
-                neuron.derivative_value = self.activation_derivative(neuron.value)  # this is used
-                neuron.weights_derivatives = np.array(prev_layer_values)            # in back propagation
-                this_layer_values.append(neuron.value)
-            prev_layer_values = this_layer_values
-            this_layer_values = []
-
-        for neuron in self.output_layer:
-            neuron.value = np.dot(neuron.weights, prev_layer_values) + neuron.bias
-            neuron.value = self.activation_function(neuron.value)
-            neuron.derivative_value = self.activation_derivative(neuron.value)      # this is used
-            neuron.weights_derivatives = np.array(prev_layer_values)                # in back propagation
-            this_layer_values.append(neuron.value)
-
-        # calculating error
-        probabilities = self.softmax()
-        calculated_class = probabilities.index(max(probabilities))
-        correct = calculated_class == int(target_class)
-
-        return calculated_class, correct
-
-    def validate_network(self, dataset, classes):
-        successes = 0
-        for ind in range(len(dataset)):
-            img = dataset[ind]
-            classed = classes[ind]
-            _, success = self.make_prediction(img, classed)
-            if success:
-                successes += 1
-        return successes / len(dataset)
+            accuracy = self.get_accuracy(test_list)
