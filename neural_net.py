@@ -3,7 +3,7 @@ from random import random, choice, randint
 import numpy as np
 
 class NeuralNet:
-    def __init__(self, sizes=[784, 128, 64, 10], repeat=10, learing_speed=0.001):
+    def __init__(self, sizes=[783, 128, 64, 10], repeat=10, learing_speed=0.001):
         self.sizes = sizes
         self.repeat = repeat
         self.learning_speed = learing_speed
@@ -53,7 +53,7 @@ class NeuralNet:
 
         return params['Z'+str(last_id)]
 
-    def get_last_number(s):
+    def get_last_number(self, s):
         i = len(s) - 1
 
         while i >= 0 and s[i].isdigit():
@@ -99,7 +99,7 @@ class NeuralNet:
     def train(self, train_list, test_list):
         for i in range(self.repeat):
             for x in train_list:
-                values = train_list.to_list()
+                values = x.tolist()
                 inputs = (np.asfarray(values[1:])/255*0.99) + 0.01
                 targets = np.zeros(10) + 0.01
                 targets[int(values[0])] = 0.99
@@ -108,3 +108,4 @@ class NeuralNet:
                 self.update_weights(change_w)
 
             accuracy = self.get_accuracy(test_list)
+            print(f"Repeated: {accuracy}")
