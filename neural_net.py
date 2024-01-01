@@ -7,7 +7,7 @@ class NeuralNet:
         self.sizes = sizes
         self.repeat = repeat
         self.learning_speed = learing_speed
-        self.weights = [0]
+        self.weights = [[]]
         self.pre_activation = [[]]
         self.post_activation = [[]]
 
@@ -16,6 +16,7 @@ class NeuralNet:
         for i in range(1, len(sizes) - 1):
             deepSizes.append(sizes[i])
         output_layer = sizes[-1]
+        print(input_layer)
         print(deepSizes)
         print(output_layer)
 
@@ -28,16 +29,19 @@ class NeuralNet:
 
         # print(self.params)
 
-    def sigmoid(self, x, derivative=False):
-        if derivative:
-            return (np.exp(-x))/((np.exp(-x)+1)**2)
+    def sigmoid(self, x):
         return 1/(1+np.exp(-x))
 
-    def softmax(self, x, derivative=False):
+    def sigmoid_derivative(self, x):
+        return (np.exp(-x))/((np.exp(-x)+1)**2)
+
+    def softmax(self, x):
         exps = np.exp(x-x.max())
-        if derivative:
-            return exps / np.sum(exps, axis=0) * (1-exps / np.sum(exps, axis=0))
         return exps / np.sum(exps, axis=0)
+
+    def softmax_derivative(self, x):
+        exps = np.exp(x-x.max())
+        return exps / np.sum(exps, axis=0) * (1-exps / np.sum(exps, axis=0))
 
     def foward_pass(self, x_train):
         last_id = self.get_last_number()
@@ -64,12 +68,12 @@ class NeuralNet:
     def backward_pass(self, y_train, output):
         change_w = {}
         last_id = self.get_last_number()
-        error = 2 * (output - y_train) / output.shape[0] * self.softmax(self.pre_activation[last_id], True)
+        error = 2 * (output - y_train) / output.shape[0] * self.softmax_derivative(self.pre_activation[last_id])
         change_w[last_id] = np.outer(error, self.post_activation[last_id-1])
 
         a = last_id - 2
         while a >= 0:
-            error = np.dot(self.weights[a+2].T, error) * self.sigmoid(self.pre_activation[a+1], True)
+            error = np.dot(self.weights[a+2].T, error) * self.sigmoid_derivative(self.pre_activation[a+1])
             change_w[a+1] = np.outer(error, self.post_activation[a])
             a -= 1
 
