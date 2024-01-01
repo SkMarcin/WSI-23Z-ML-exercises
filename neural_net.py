@@ -3,10 +3,13 @@ from random import random, choice, randint
 import numpy as np
 
 class NeuralNet:
-    def __init__(self, sizes=[784, 128, 64, 10], repeat=10, learing_speed=0.001):
+    def __init__(self, sizes=[784, 64, 64, 10], repeat=10, learing_speed=0.1):
         self.sizes = sizes
         self.repeat = repeat
         self.learning_speed = learing_speed
+        self.weights = [0]
+        self.pre_activation = [[]]
+        self.post_activation = [[]]
 
         input_layer = sizes[0]
         deepSizes = []
@@ -16,14 +19,13 @@ class NeuralNet:
         print(deepSizes)
         print(output_layer)
 
-        self.params = {}
-
         for i in range(len(sizes) - 1):
             j = i + 1
-            key = "W" + str(j)
-            self.params[key] = np.random.randn(sizes[j], sizes[i]) * np.sqrt(1./sizes[j])
+            self.weights.append([])
+            self.weights[j] = np.random.randn(sizes[j], sizes[i]) * np.sqrt(1./sizes[j])
+            self.pre_activation.append([])
+            self.post_activation.append([])
 
-        self.initial_params = self.params
         # print(self.params)
 
     def sigmoid(self, x, derivative=False):
@@ -38,56 +40,44 @@ class NeuralNet:
         return exps / np.sum(exps, axis=0)
 
     def foward_pass(self, x_train):
-        params = self.params
-
-        last_key = list(params.keys())[-1]
-        last_id = self.get_last_number(last_key)
+        last_id = self.get_last_number()
         i = 0
 
-        params['A0'] = x_train
+        self.post_activation[i] = x_train
 
         while i < last_id:
             j = i + 1
-            params['Z'+str(j)] = np.dot(params['W'+str(j)], params['A'+str(i)])
-            params['A'+str(j)] = self.sigmoid(params['Z'+str(j)])
+            self.pre_activation[j] = np.dot(self.weights[j], self.post_activation[i])
+            self.post_activation[j] = self.sigmoid(self.pre_activation[j])
             i += 1
 
         # print(last_id)
-        params['Z'+str(last_id)] = np.dot(params['W'+str(last_id)], params['A'+str(last_id-1)])
-        params['A'+str(last_id)] = self.softmax(params['Z'+str(last_id)])
+        self.pre_activation[last_id] = np.dot(self.weights[last_id], self.post_activation[last_id-1])
+        self.post_activation[last_id] = self.softmax(self.pre_activation[last_id])
 
-        return params['Z'+str(last_id)]
+        return self.post_activation[last_id]
 
-    def get_last_number(self, s):
-        i = len(s) - 1
-
-        while i >= 0 and s[i].isdigit():
-            i -= 1
-
-        last_number = s[i + 1:] if i < len(s) - 1 else None
-        return int(last_number) if last_number is not None else None
+    def get_last_number(self):
+        return len(self.weights) - 1
 
 
     def backward_pass(self, y_train, output):
-        params = self.params
-
         change_w = {}
-        last_key = list(params.keys())[-1]
-        last_id = self.get_last_number(last_key)
-        error = 2 * (output - y_train) / output.shape[0] * self.softmax(params['Z'+str(last_id)], True)
-        change_w['W'+str(last_id)] = np.outer(error, params['A'+str(last_id-1)])
+        last_id = self.get_last_number()
+        error = 2 * (output - y_train) / output.shape[0] * self.softmax(self.pre_activation[last_id], True)
+        change_w[last_id] = np.outer(error, self.post_activation[last_id-1])
 
         a = last_id - 2
         while a >= 0:
-            error = np.dot(params['W' + str(a+2)].T, error) * self.sigmoid(params['Z'+str(a+1)], True)
-            change_w['W'+str(a+1)] = np.outer(error, params['A'+str(a)])
+            error = np.dot(self.weights[a+2].T, error) * self.sigmoid(self.pre_activation[a+1], True)
+            change_w[a+1] = np.outer(error, self.post_activation[a])
             a -= 1
 
         return change_w
 
     def update_weights(self, change_w):
         for key, val in change_w.items():
-            self.params[key] -= val * self.learning_speed
+            self.weights[key] -= val * self.learning_speed
 
     def get_accuracy(self, train_list):
         predictions = []
