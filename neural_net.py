@@ -87,8 +87,6 @@ class NeuralNet:
 
     def get_accuracy(self, train_list):
         predictions = []
-        classes_dict = {}
-        classes_correct = {}
         for x in train_list:
             values = x
             inputs = (np.asfarray(values[1:])/255*0.99) + 0.01
@@ -97,27 +95,12 @@ class NeuralNet:
             output = self.foward_pass(inputs)
             prediction = np.argmax(output)
             predictions.append(prediction==np.argmax(targets))
-            if prediction in classes_dict:
-                classes_dict[prediction] += 1
-            else:
-                classes_dict[prediction] = 1
-            if prediction == np.argmax(targets):
-                if prediction in classes_correct:
-                    classes_correct[prediction] += 1
-                else:
-                    classes_correct[prediction] = 1
 
-        # print(classes_dict)
-        # print(classes_correct)
         return np.mean(predictions)
 
 
     def train(self, train_list, test_list):
-        val_accuracies = []
-        train_accuracies = []
-        iterations = []
         start = time()
-        counter = 0
         for i in range(self.repeat):
             a = 0
             for index, x in enumerate(train_list):
@@ -130,22 +113,7 @@ class NeuralNet:
                 self.update_weights(change_w)
                 # print(f"Looping {a}")
                 a += 1
-                counter += 1
-                if counter % 5000 == 0:
-                    accuracy = self.get_accuracy(test_list)
-                    train_accuracy = self.get_accuracy(train_list)
-                    val_accuracies.append(accuracy)
-                    train_accuracies.append(train_accuracy)
-                    iterations.append(counter)
-                    print(f"Repeated: {accuracy}")
 
-
+            accuracy = self.get_accuracy(test_list)
+            print(f"Repeated: {accuracy}")
             print(f"{time() - start}")
-
-        plt.plot(iterations, val_accuracies, label="validation")
-        plt.plot(iterations, train_accuracies, label="training")
-        plt.xlabel("Iterations")
-        plt.ylabel("Accuracy")
-        plt.title("Accuracy graph")
-        plt.legend()
-        plt.show()
