@@ -48,27 +48,11 @@ def is_valid_location(row, column, board_size):
 
 def generate_board(seed, n, hole_prob):
     random.seed(seed)
-    start_coord = (0, 0)
-    board = [[0]]
-    while not dfs(board, start_coord):
-        board = [[0 for _ in range(n)] for __ in range(n)]
-        start = random.randrange(0, np.square(n))
-        end = random.randrange(0, np.square(n))
-        while end == start:
-            end = random.randrange(0, np.square(n))
-        row = start // n
-        column = start % n
-        board[row][column]  = 2
-        row = end // n
-        column = end % n
-        board[row][column]  = 3
-
-        for row in range(n):
+    board = [[0 for _ in range(n)] for __ in range(n)]
+    for row in range(n):
             for column in range(n):
                 if random.random() < hole_prob and board[row][column] == 0:
                     board[row][column] = 1
-
-        start_coord = (start // n, start % n)
     return board
 
 def is_terminal(board, row, column):
@@ -97,6 +81,19 @@ def next_location(current_row, current_column, direction):
   elif DIRECTIONS[direction] == 'left':
     new_column_index -= 1
   return new_row_index, new_column_index
+
+def get_shortest_path(board, q_values, start_row, start_column):
+  if is_terminal(board, start_row, start_column):
+    return []
+  else:
+    current_row, current_column = start_row, start_column
+    shortest_path = []
+    shortest_path.append([current_row, current_column])
+    while not is_terminal(board, current_row, current_column):
+      action_index = choose_action(current_row, current_column, q_values, 1)
+      current_row, current_column = next_location(current_row, current_column, action_index)
+      shortest_path.append([current_row, current_column])
+    return shortest_path
 
 def run_random(board):
     row = 0
