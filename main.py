@@ -1,14 +1,16 @@
 from q_learn import run_random, run_q, generate_board
 import numpy as np
 
-SEED = 15
+SEED = 5
 N = 8
 EPSILON = 0.5
 LEARNING_RATE = 0.1
 DISCOUNT_FACTOR = 0.5
-CYCLES = 100000
+CYCLES = 100
 
-board = generate_board(SEED, N, 0.2)
+board = generate_board(SEED, N, 0.5)
+for row in board:
+    print(row)
 q_values = np.zeros((N, N, 4))
 q_learn = 0
 random = 0

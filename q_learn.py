@@ -118,13 +118,14 @@ def run_random(board):
 def run_q(board, q_values, epsilon, discount_factor, learning_rate):
     row = 0
     column = 0
+    iterations = 0
     for i in range(len(board)):
         for j in range(len(board[0])):
             if board[i][j] == 2:
                 row = i
                 column = j
 
-    while not is_terminal(board, row, column):
+    while not is_terminal(board, row, column) and iterations < 20:
         action_index = choose_action(row, column, q_values, epsilon)
 
         old_row, old_column = row, column
@@ -150,6 +151,7 @@ def run_q(board, q_values, epsilon, discount_factor, learning_rate):
 
         new_q_value = old_q_value + (learning_rate * temporal_difference)
         q_values[old_row, old_column, action_index] = new_q_value
+        iterations += 1
 
     if row < len(board) and column < len(board) and row >= 0 and column >= 0:
         if board[row][column] == 3:
