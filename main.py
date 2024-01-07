@@ -1,7 +1,7 @@
 from q_learn import run_random, run_q, generate_board, dfs, get_shortest_path
 import numpy as np
 
-SEED = 38
+SEED = 1
 N = 8
 EPSILON = 0.5
 LEARNING_RATE = 0.5
