@@ -51,6 +51,19 @@ class BayesClassifier:
         return predictions
 
 
+    def test(self, features):
+        probabilities = [1] * len(self.class_priors)
+        for prior_index, prior in enumerate(self.class_priors):
+            for feature_index, feature in enumerate(features):
+                probabilities[prior_index] *= self.calculate_prob(feature_index, feature, prior)
+
+        post_probabilities = [1] * len(self.class_priors)
+        for prior_index, prior in enumerate(self.class_priors):
+            post_probabilities[prior_index] = probabilities[prior_index] * self.class_priors[prior]
+
+        prediction = np.argmax(post_probabilities)
+
+        return prediction
 
 
 
