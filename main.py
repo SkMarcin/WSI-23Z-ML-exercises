@@ -1,4 +1,5 @@
 from bayes import BayesClassifier
+from sklearn.model_selection import train_test_split
 # import pandas as pd
 # import seaborn as sns
 import numpy as np
@@ -39,6 +40,9 @@ for line in file_handle:
     data.append(data_line)
     targets.append(line[7])
 
+
+training_data, testing_data, training_targets, testing_targets = train_test_split(data, targets, test_size=0.2)
+
 # index = 2
 # targets = np.array(targets)
 # values = np.array([line[index] for line in data])
@@ -66,7 +70,15 @@ for line in file_handle:
 # Show the plot
 plt.show()
 
-bayes = BayesClassifier(data, targets)
-results = bayes.train()
+bayes = BayesClassifier(training_data, training_targets)
+bayes.train()
+results = []
+
+for index, line in enumerate(testing_data):
+    string = bayes.test(line)
+    if int(bayes.test(line)) == int(testing_targets[index]) - 1:
+        results.append(True)
+    else:
+        results.append(False)
 
 print('fin')
