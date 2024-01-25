@@ -1,11 +1,15 @@
-from bayes import BayesClassifier
+from bayes import BayesClassifier, get_classification_dict, get_accuracy, get_precision, get_sensitivity
 from sklearn.model_selection import train_test_split
 # import pandas as pd
 # import seaborn as sns
 import numpy as np
 import matplotlib.pyplot as plt
 
-file_handle = open("seeds_dataset.txt", "r")
+CLASSES =['1', '2', '3']
+
+file_handle = open("./seeds_dataset.txt", "r")
+
+
 
 data = []
 targets = []
@@ -41,8 +45,6 @@ for line in file_handle:
     targets.append(line[7])
 
 
-training_data, testing_data, training_targets, testing_targets = train_test_split(data, targets, test_size=0.2)
-
 # index = 2
 # targets = np.array(targets)
 # values = np.array([line[index] for line in data])
@@ -63,22 +65,40 @@ training_data, testing_data, training_targets, testing_targets = train_test_spli
 
 # plt.xlabel('Values')
 # plt.ylabel('Count')
-# plt.title('Histogram of Kernel Groove Length Values for Each Class')
+# plt.title('Histogram of Kernel Grove Length Values for Each Class')
 # plt.legend()
 # plt.grid(True)
+# plt.show()
 
-# Show the plot
-plt.show()
+# train_size = 0.05
+# training_data = data[:int(len(data)*train_size)]
+# training_targets = targets[:int(len(data)*train_size)]
+
+# testing_data = data[int(len(data)*train_size):]
+# testing_targets = targets[int(len(data)*train_size):]
+
+# results_total = []
+# for i in range(100):
+training_data, testing_data, training_targets, testing_targets = train_test_split(data, targets, test_size=0.5)
 
 bayes = BayesClassifier(training_data, training_targets)
 bayes.train()
 results = []
 
+predicted = []
+
 for index, line in enumerate(testing_data):
-    string = bayes.test(line)
-    if int(bayes.test(line)) == int(testing_targets[index]) - 1:
+    predicted.append(str(bayes.test(line)))
+    if int(bayes.test(line)) == int(testing_targets[index]):
         results.append(True)
     else:
         results.append(False)
 
+dict = get_classification_dict(list(zip(testing_targets, predicted)))
+
+print(get_accuracy(dict, CLASSES))
+print(get_precision(dict, CLASSES))
+print(get_sensitivity(dict, CLASSES))
+
+print(dict)
 print('fin')
